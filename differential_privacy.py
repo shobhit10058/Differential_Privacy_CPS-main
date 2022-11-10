@@ -64,7 +64,7 @@ def x_mat(n_tp=300, x_supply0=1.5, DP=True, plot=True, K=1, T=1):
     x_supply_DP[0] = x_supply0
     x_cons_DP[0] = np.sum(x_1) / 1000
     price_DP[0] = lambda_0
-    print("SD of added noise to individual consumer demand reading", np.std(calc_noise()))
+    print("Standard Deviation of external noise added to individual consumer demands", np.std(calc_noise()))
 
   outputs = []
   Q_mat = np.zeros((3, 3))
@@ -101,21 +101,36 @@ def x_mat(n_tp=300, x_supply0=1.5, DP=True, plot=True, K=1, T=1):
       error.append(x_supply[i] - x_cons[i])
     if not DP:
       plt.plot(error)
+      plt.xlabel("Time")
+      plt.ylabel("Supply Demand Mismatch (MW)")
       plt.savefig('results/sup_dem_mismatch.png')
+      plt.show()
       plt.close()
+
       plt.plot(outputs)
+      plt.xlabel("Time")
+      plt.ylabel("Standard Deviation of output")
       plt.savefig("results/standard_dev_noise.png")
+      plt.show()
       plt.close()
     else:
       error_w_DP = []
       for i in range(1,n_tp+1):
         error_w_DP.append(x_supply_DP[i] - x_cons_DP[i])
-      plt.plot(error_w_DP)
-      plt.plot(error)
+      plt.plot(error_w_DP, label="With external noise")
+      plt.plot(error, label="no external noise")
+      plt.xlabel("Time")
+      plt.ylabel("Supply Demand Mismatch (MW)")
+      plt.legend()
       plt.savefig('results/sup_dem_mismatch_DP.png')
+      plt.show()
       plt.close()
+
       plt.plot(outputs)
+      plt.xlabel("Time")
+      plt.ylabel("Standard Deviation of output")
       plt.savefig("results/standard_dev_noise_DP.png")
+      plt.show()
       plt.close()
   if not DP:
     return x_supply, x_cons, price, outputs
@@ -125,14 +140,16 @@ def x_mat(n_tp=300, x_supply0=1.5, DP=True, plot=True, K=1, T=1):
 
 def calc_noise():
   exp_std = 0.354
-  curr_std = 0.24
+  curr_std = 0.23
   var_noise = (exp_std * exp_std - curr_std*curr_std)
   noise = np.random.normal(0, math.sqrt((var_noise) / n_homes), n_homes)
   return noise
 
+# generating random values for required parameters
 def get_b_d_psi_beta_omega():
+  ## generating random distributions
   b = (np.random.rand(n_homes)*(b_max-b_min)) + b_min
-  d = np.random.normal(d_mean, d_var, n_homes) ## generating random distributions
+  d = np.random.normal(d_mean, d_var, n_homes) 
   psi = np.random.normal(psi_mean, psi_var, n_homes)
   beta = []
   for j in range(n_homes):
@@ -146,4 +163,5 @@ def main():
   x_mat()
 
 if __name__ == '__main__':
+  os.chdir((os.path.dirname(os.path.abspath(__file__))))
   main()
