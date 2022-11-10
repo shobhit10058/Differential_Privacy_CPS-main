@@ -91,7 +91,10 @@ def x_mat(n_tp=300, x_supply0=1.5, DP=True, plot=True, K=1, T=1):
     price[i+1] = K*((x_cons[i] - x_supply[i] + np.sum(v_noise))) + price[i]
 
     if(not DP):
+      # updating Q matrix
       Q_mat = update_Q_Mat(Q_mat, beta, omega, b, v_noise)
+
+      # calculating standard deviation of output with Q matrix
       C_mat = np.array([[1, -1, 0]])
       Rv = np.matmul([v_noise], np.transpose([v_noise]))[0][0]
       curr_val = np.matmul(np.matmul(C_mat, Q_mat), np.transpose(C_mat))[0][0] + Rv
@@ -99,11 +102,20 @@ def x_mat(n_tp=300, x_supply0=1.5, DP=True, plot=True, K=1, T=1):
 
     if DP:
       x_supply_DP[i+1] = (p*price_DP[i] + q)
+
+      # generating independent guassian noise for each consumer
       noise = calc_noise()
+      # adding aggregrated noise to total demand
       x_cons_DP[i+1] = alpha*x_cons_DP[i] + (np.sum(beta)*price_DP[i] + np.sum(b) + np.sum(omega))/1000 + np.sum(noise)
+      
+      # updating price
       v_noise = np.random.normal(v_mean, v_std, n_homes)
       price_DP[i+1] = K*((x_cons_DP[i]-x_supply_DP[i] + np.sum(v_noise))) + price_DP[i]
+      
+      # updatin Q matrix
       Q_mat = update_Q_Mat(Q_mat, beta, omega, b, v_noise + noise)
+      
+      # calculating standard deviation of output with added noise
       C_mat = np.array([[1, -1, 0]])
       v_noise = v_noise + noise
       Rv = np.matmul([v_noise], np.transpose([v_noise]))[0][0]
