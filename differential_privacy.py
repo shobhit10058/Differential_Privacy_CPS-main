@@ -6,10 +6,10 @@ import seaborn as sns
 import random
 import os
 
-## initializing the variables
-n_homes=1405 ## number of houses
-lambda_0 = 21
-alpha = 0.1
+## initializing the variables as given in the paper
+n_homes = 1405 ## number of houses
+lambda_0 = 21 ## initial price
+alpha = 0.1  
 p = 0.00436
 q = 1.28
 xcmax = 1.6            
@@ -26,6 +26,17 @@ psi_mean=-0.8
 psi_var=0.1
 omega_mean=0
 omega_std=0.007
+
+# updating Q matrix required to get variance of output
+# A        = [0   0      p]
+#            [0 alpha beta]
+#            [-K  K      1]
+#
+# Rphi     = [0  0       0]
+#            [0  Rw      0]
+#            [0  0  K*K*Rv]   
+#
+# Q(k + 1) = A * Q(k) * transpose(A) + Rphi
 
 def update_Q_Mat(Q_mat, beta, omega, b, v_noise):
   A_bar = np.array([[0, 0, p], [0, alpha, np.sum(beta)/1000], [-K, K, 1]])
@@ -70,10 +81,15 @@ def x_mat(n_tp=300, x_supply0=1.5, DP=True, plot=True, K=1, T=1):
   Q_mat = np.zeros((3, 3))
   for i in range(n_tp):
     b, d, psi, beta, omega = get_b_d_psi_beta_omega()
+
+    # updating the states
     x_supply[i+1] = (p*price[i] + q)
     x_cons[i+1] = alpha*x_cons[i] + (np.sum(beta)*price[i] + np.sum(b) + np.sum(omega))/1000
+    
+    # generating random independent guassian measurement noise for each consumer demands
     v_noise = np.random.normal(v_mean, v_std, n_homes)
-    price[i+1] = K*((x_cons[i]-x_supply[i] + np.sum(v_noise))) + price[i]
+    price[i+1] = K*((x_cons[i] - x_supply[i] + np.sum(v_noise))) + price[i]
+
     if(not DP):
       Q_mat = update_Q_Mat(Q_mat, beta, omega, b, v_noise)
       C_mat = np.array([[1, -1, 0]])
@@ -110,7 +126,7 @@ def x_mat(n_tp=300, x_supply0=1.5, DP=True, plot=True, K=1, T=1):
       plt.plot(outputs)
       plt.xlabel("Time")
       plt.ylabel("Standard Deviation of output")
-      plt.savefig("results/standard_dev_noise.png")
+      plt.savefig("results/standard_dev_output.png")
       plt.show()
       plt.close()
     else:
@@ -129,7 +145,7 @@ def x_mat(n_tp=300, x_supply0=1.5, DP=True, plot=True, K=1, T=1):
       plt.plot(outputs)
       plt.xlabel("Time")
       plt.ylabel("Standard Deviation of output")
-      plt.savefig("results/standard_dev_noise_DP.png")
+      plt.savefig("results/standard_dev_output_DP.png")
       plt.show()
       plt.close()
   if not DP:
