@@ -10,3 +10,4 @@ Using Kalman Filter tried to estimate both the private consumer data and added n
 1. Setup virtual environment and install requirements from requirements.txt
 2. Differential privacy code is in differential_privacy.py
 3. Kalman Filter code is in kalman.py
+4. Results are saved in results folder
