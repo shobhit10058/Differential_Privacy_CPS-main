@@ -51,7 +51,7 @@ def update_Q_Mat(Q_mat, beta, omega, b, v_noise):
 # x(k+1) = 	 [xcT(k+1)	 ] = [0 		alpha 	 beta][xc(k)	  ] +  [omegaT(k) + bT(k)	]
 # 			     [lambda(k+1)]	 [-K 	K 		   1	   ][lambda(k)]	   [		   KvT			  ]
 
-def x_mat(n_tp=300, x_supply0=1.5, DP=True, plot=True, K=1, T=1):
+def x_mat(n_tp=300, x_supply0=1.5, DP=True, eps=0.1, plot=True, K=1, T=1, show_plot=True):
   x_0 = []
   for i in range(n_homes):
     x_0.append(random.random()*xcmax)
@@ -75,7 +75,7 @@ def x_mat(n_tp=300, x_supply0=1.5, DP=True, plot=True, K=1, T=1):
     x_supply_DP[0] = x_supply0
     x_cons_DP[0] = np.sum(x_1) / 1000
     price_DP[0] = lambda_0
-    print("Standard Deviation of external noise added to individual consumer demands", np.std(calc_noise()))
+    print("Standard Deviation of external noise added to individual consumer demands", np.std(calc_noise(eps=eps)))
 
   outputs = []
   Q_mat = np.zeros((3, 3))
@@ -104,7 +104,7 @@ def x_mat(n_tp=300, x_supply0=1.5, DP=True, plot=True, K=1, T=1):
       x_supply_DP[i+1] = (p*price_DP[i] + q)
 
       # generating independent guassian noise for each consumer
-      noise = calc_noise()
+      noise = calc_noise(eps=eps)
       # adding aggregrated noise to total demand
       x_cons_DP[i+1] = alpha*x_cons_DP[i] + (np.sum(beta)*price_DP[i] + np.sum(b) + np.sum(omega))/1000 + np.sum(noise)
       
@@ -124,41 +124,51 @@ def x_mat(n_tp=300, x_supply0=1.5, DP=True, plot=True, K=1, T=1):
   
   if plot:
     plt.clf()
-    error = []
+    mismatch = []
     for i in range(1,n_tp+1):
-      error.append(x_supply[i] - x_cons[i])
+      mismatch.append(x_supply[i] - x_cons[i])
     if not DP:
-      plt.plot(error)
+      plt.plot(mismatch)
       plt.xlabel("Time")
       plt.ylabel("Supply Demand Mismatch (MW)")
-      plt.savefig('results/sup_dem_mismatch.png')
-      plt.show()
+      plt.title("Supply demand Mismatch with no external noise")
+      plt.savefig('results/sup_dem_mismatch_no_external_noise.png')
+      if(show_plot):
+        plt.show()
       plt.close()
 
       plt.plot(outputs)
       plt.xlabel("Time")
       plt.ylabel("Standard Deviation of output")
-      plt.savefig("results/standard_dev_output.png")
-      plt.show()
+      plt.title("Standard Deviation of output with no external noise")
+      plt.savefig("results/standard_dev_output_no_external_noise.png")
+      if(show_plot):
+        plt.show()
       plt.close()
     else:
-      error_w_DP = []
+      mismatch_DP = []
       for i in range(1,n_tp+1):
-        error_w_DP.append(x_supply_DP[i] - x_cons_DP[i])
-      plt.plot(error_w_DP, label="With external noise")
-      plt.plot(error, label="no external noise")
+        mismatch_DP.append(x_supply_DP[i] - x_cons_DP[i])
+      plt.plot(mismatch_DP, label="With external noise")
+      plt.plot(mismatch, label="no external noise")
       plt.xlabel("Time")
       plt.ylabel("Supply Demand Mismatch (MW)")
       plt.legend()
-      plt.savefig('results/sup_dem_mismatch_DP.png')
-      plt.show()
+      plt.title("Privacy Level=("+str(eps)+", 0.01)")
+      output_file = 'results/sup_dem_mismatch_DP_for_eps=' + str(eps) + '_and_lambda=0.01.png'
+      plt.savefig(output_file)
+      if(show_plot):
+        plt.show()
       plt.close()
 
       plt.plot(outputs)
       plt.xlabel("Time")
       plt.ylabel("Standard Deviation of output")
-      plt.savefig("results/standard_dev_output_DP.png")
-      plt.show()
+      plt.title("Privacy Level=("+str(eps)+", 0.01)")
+      output_file = 'results/standard_dev_noise_DP_for_eps=' + str(eps) + '_and_lambda=0.01.png'
+      plt.savefig(output_file)
+      if(show_plot):
+        plt.show()
       plt.close()
   if not DP:
     return x_supply, x_cons, price, outputs
@@ -166,9 +176,9 @@ def x_mat(n_tp=300, x_supply0=1.5, DP=True, plot=True, K=1, T=1):
   if DP:
     return x_supply, x_cons, price, x_supply_DP, x_cons_DP, price_DP, outputs
 
-def calc_noise():
-  exp_std = 0.354
-  curr_std = 0.23
+def calc_noise(eps=0.1):
+  exp_std = 0.354*0.1/eps
+  curr_std = 0.24
   var_noise = (exp_std * exp_std - curr_std*curr_std)
   noise = np.random.normal(0, math.sqrt((var_noise) / n_homes), n_homes)
   return noise
@@ -185,10 +195,18 @@ def get_b_d_psi_beta_omega():
   omega = np.random.normal(omega_mean, omega_std,n_homes)
   return b, d, psi, beta, omega
 
+# generating data for different privacy level
+# epsilon is only changed, lamda is kept constant at 0.01
+def mismatch_vs_added_noise():
+  privacy_level = [0.07, 0.1, 0.12]
+  x_mat(DP=False,show_plot=False)
+  for eps in privacy_level:
+    x_mat(DP=True, eps=eps, show_plot=False)
 
 def main():
-  x_mat(DP=False)
-  x_mat()
+  #x_mat(DP=False)
+  #x_mat()
+  mismatch_vs_added_noise()
 
 if __name__ == '__main__':
   os.chdir((os.path.dirname(os.path.abspath(__file__))))
