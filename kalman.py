@@ -57,6 +57,7 @@ def EstimateNoiseWithKalman():
 	plt.xlabel("Time")
 	plt.ylabel("Kalman Gain")
 	plt.savefig("results/kalman_gain.png")
+	print("saved plot in results/kalman_gain.png")
 	plt.show()
 
 
@@ -66,12 +67,14 @@ def EstimateNoiseWithKalman():
 	plt.ylabel("Estimated and Original Total Demand")
 	plt.legend()
 	plt.savefig("results/original_and_estimated_signal.png")
+	print("saved plot in results/original_and_estimated_signal.png")
 	plt.show()
 
 	plt.plot(noise[:-1])
 	plt.xlabel("Time")
 	plt.ylabel("Estimated Total Noise")
 	plt.savefig("results/estimated_noise.png")
+	print("saved plot in results/estimated_noise.png")
 	plt.show()
 
 	print("Standard deviation of noise in individual consumer demands", np.sqrt(np.var(noise[-900:-1]) / n_homes))

@@ -133,6 +133,7 @@ def x_mat(n_tp=300, x_supply0=1.5, DP=True, eps=0.1, plot=True, K=1, T=1, show_p
       plt.ylabel("Supply Demand Mismatch (MW)")
       plt.title("Supply demand Mismatch with no external noise")
       plt.savefig('results/sup_dem_mismatch_no_external_noise.png')
+      print('saved plot in results/sup_dem_mismatch_no_external_noise.png')
       if(show_plot):
         plt.show()
       plt.close()
@@ -142,6 +143,7 @@ def x_mat(n_tp=300, x_supply0=1.5, DP=True, eps=0.1, plot=True, K=1, T=1, show_p
       plt.ylabel("Standard Deviation of output")
       plt.title("Standard Deviation of output with no external noise")
       plt.savefig("results/standard_dev_output_no_external_noise.png")
+      print('saved plot in results/standard_dev_output_no_external_noise.png')
       if(show_plot):
         plt.show()
       plt.close()
@@ -157,6 +159,7 @@ def x_mat(n_tp=300, x_supply0=1.5, DP=True, eps=0.1, plot=True, K=1, T=1, show_p
       plt.title("Privacy Level=("+str(eps)+", 0.01)")
       output_file = 'results/sup_dem_mismatch_DP_for_eps=' + str(eps) + '_and_lambda=0.01.png'
       plt.savefig(output_file)
+      print("saved plot in "+output_file)
       if(show_plot):
         plt.show()
       plt.close()
@@ -167,6 +170,7 @@ def x_mat(n_tp=300, x_supply0=1.5, DP=True, eps=0.1, plot=True, K=1, T=1, show_p
       plt.title("Privacy Level=("+str(eps)+", 0.01)")
       output_file = 'results/standard_dev_noise_DP_for_eps=' + str(eps) + '_and_lambda=0.01.png'
       plt.savefig(output_file)
+      print("saved plot in "+output_file)
       if(show_plot):
         plt.show()
       plt.close()
@@ -178,7 +182,7 @@ def x_mat(n_tp=300, x_supply0=1.5, DP=True, eps=0.1, plot=True, K=1, T=1, show_p
 
 def calc_noise(eps=0.1):
   exp_std = 0.354*0.1/eps
-  curr_std = 0.24
+  curr_std = 0.23
   var_noise = (exp_std * exp_std - curr_std*curr_std)
   noise = np.random.normal(0, math.sqrt((var_noise) / n_homes), n_homes)
   return noise
